@@ -303,7 +303,7 @@ class MemberTest {
      * from Member m
      * left join m.team t
      * on t.name = 'teamA'
-     *
+     * <p>
      * 이너조인 쓴다면 그냥 where쓰자..
      */
     @Test
@@ -341,5 +341,22 @@ class MemberTest {
         }
 
     }
+
+    /**
+     * 페치조인은 SQL에서 제공하는 기능x
+     * 연관된 엔티티를 SQL 한번에 조회하는 기능. 주로 성능최적화에 쓰임.
+     */
+    // 페치조인 미적용.
+    @Test
+    void fetchJoinNo() {
+        em.flush();
+        em.clear();
+
+
+        Member findMember = queryFactory
+                .selectFrom(member)
+                .where(member.username.eq("member1"))
+                .fetchOne();
+
     }
 }
