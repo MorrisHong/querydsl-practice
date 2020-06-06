@@ -1,5 +1,6 @@
 package kr.gracelove.querydsl.entity;
 
+import com.querydsl.core.QueryResults;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -114,6 +115,38 @@ class MemberTest {
 
         assertEquals(age, findMember.getAge());
         assertEquals(username, findMember.getUsername());
+    }
+
+    @Test
+    void resultFetch() {
+        List<Member> fetch = queryFactory
+                .selectFrom(member)
+                .fetch(); //여러건 조회 없으면 빈 리스트 반환.
+
+        Member fetchOne = queryFactory
+                .selectFrom(QMember.member)
+                .fetchOne();// 단건 조회
+
+        Member fetchFirst = queryFactory
+                .selectFrom(QMember.member)
+                .fetchFirst();// limit(1).fetchOne()
+
+
+        //////// fetchResults() /////////////////////////////
+        QueryResults<Member> memberQueryResults = queryFactory
+                .selectFrom(member)
+                .fetchResults(); // 쿼리 두방나감. 토탈쿼리도 가져와야되기 때문에.
+
+        long total = memberQueryResults.getTotal();
+        List<Member> results = memberQueryResults.getResults();
+        /////////////////////////////////////////////////////////
+        ///// count 쿼리는 웬만하면 직접날리자. 이 메서드는 최적화 안되는 경우가 있다.
+
+        long fetchCount = queryFactory
+                .selectFrom(member)
+                .fetchCount();// count 쿼리나감.
+
+
     }
 
 }
