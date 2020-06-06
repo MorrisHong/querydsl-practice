@@ -71,7 +71,7 @@ class MemberTest {
         String username = "member1";
 
 //        QMember member = new QMember("m1"); // 셀프조인할 때만 쓰는걸 추천.
-//        QMember member = QMember.member;    // 일반적으로 추천.
+//        QMember member = QMember.member;    // 일반적으 추천.
 
         Member findMember = queryFactory
                 .select(member)
@@ -79,6 +79,40 @@ class MemberTest {
                 .where(member.username.eq(username))
                 .fetchOne();
 
+        assertEquals(username, findMember.getUsername());
+    }
+
+    @Test
+    void search() {
+        // username = member1 & age = 10
+        String username = "member1";
+        int age = 10;
+
+        Member findMember = queryFactory
+                .selectFrom(member)
+                .where(member.username.eq(username)
+                        .and(member.age.eq(age)))
+                .fetchOne();
+
+        assertEquals(age, findMember.getAge());
+        assertEquals(username, findMember.getUsername());
+    }
+
+    @Test
+    void searchAndParam() { // where절 보자. search()와 같음. null을 무시한다.
+        // username = member1 & age = 10
+        String username = "member1";
+        int age = 10;
+
+        Member findMember = queryFactory
+                .selectFrom(member)
+                .where(
+                        member.username.eq(username),
+                        member.age.eq(age)
+                )
+                .fetchOne();
+
+        assertEquals(age, findMember.getAge());
         assertEquals(username, findMember.getUsername());
     }
 
