@@ -9,14 +9,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceContext;
+import javax.persistence.PersistenceUnit;
 import java.util.List;
 
 import static kr.gracelove.querydsl.entity.QMember.*;
 import static kr.gracelove.querydsl.entity.QTeam.*;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Created by GraceLove
@@ -347,6 +348,9 @@ class MemberTest {
      * 연관된 엔티티를 SQL 한번에 조회하는 기능. 주로 성능최적화에 쓰임.
      */
     // 페치조인 미적용.
+    @PersistenceUnit
+    EntityManagerFactory emf;
+
     @Test
     void fetchJoinNo() {
         em.flush();
@@ -357,6 +361,11 @@ class MemberTest {
                 .selectFrom(member)
                 .where(member.username.eq("member1"))
                 .fetchOne();
+
+        boolean loaded = emf.getPersistenceUnitUtil().isLoaded(findMember.getTeam());
+        assertFalse(loaded);
+
+        System.out.println(findMember.getTeam());
 
     }
 }
