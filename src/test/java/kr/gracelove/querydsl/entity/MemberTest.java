@@ -66,7 +66,7 @@ class MemberTest {
         //member1 찾기
         String username = "member1";
 
-        JPAQueryFactory queryFactory = new JPAQueryFactory(em);
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //필드레벨로 가져가도 된다. 동시성문제 x
         QMember m = QMember.member;
 
         Member findMember = queryFactory
