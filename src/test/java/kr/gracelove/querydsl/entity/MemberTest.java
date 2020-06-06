@@ -2,8 +2,10 @@ package kr.gracelove.querydsl.entity;
 
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import kr.gracelove.querydsl.dto.MemberDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -516,6 +518,62 @@ class MemberTest {
             System.out.println("age = " + age);
         }
     }
-
     // 튜플은 쿼리DSL에 종속적이다. 하부 기술을 쉽게 바꿀 수 있게 repository 에서 사용하고 바깥으로 내보낼 때는 일반적인 객체로 내보내자.(DTO 등)
+
+
+    /**
+     * 프로젝션 - dto조회
+     * jpql로 하는 법.(생성자 방식만 지원)
+     */
+    @Test
+    void findDtoByJPQL() {
+        List<MemberDto> resultList = em.createQuery("select new kr.gracelove.querydsl.dto.MemberDto(m.username, m.age) from Member m", MemberDto.class)
+                .getResultList();
+        resultList.forEach(System.out::println);
+    }
+
+    /**
+     * 프로젝션 - dto조회
+     * querydsl로 하는 법 (setter) setter로 한다고해도 퍼블릭 기본생성자 필요하다.
+     */
+    @Test
+    void findDtoBySetter() {
+        List<MemberDto> fetch = queryFactory
+                .select(Projections.bean(MemberDto.class,
+                        member.username,
+                        member.age))
+                .from(member)
+                .fetch();
+        fetch.forEach(System.out::println);
+    }
+
+    /**
+     * 프로젝션 - dto조회
+     * querydsl로 하는 법 (field) 역시 기본생성자 필요.
+     */
+    @Test
+    void findDtoByField() {
+        List<MemberDto> fetch = queryFactory
+                .select(Projections.fields(MemberDto.class,
+                        member.username,
+                        member.age))
+                .from(member)
+                .fetch();
+        fetch.forEach(System.out::println);
+    }
+
+    /**
+     * 프로젝션 - dto조회
+     * querydsl로 하는 법 (constructor) 역시 기본생성자 필요. 순서 맞아야한다.
+     */
+    @Test
+    void findDtoByConstructor() {
+        List<MemberDto> fetch = queryFactory
+                .select(Projections.constructor(MemberDto.class,
+                        member.username,
+                        member.age))
+                .from(member)
+                .fetch();
+        fetch.forEach(System.out::println);
+    }
 }
