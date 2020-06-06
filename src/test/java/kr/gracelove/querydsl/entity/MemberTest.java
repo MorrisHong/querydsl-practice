@@ -1,5 +1,6 @@
 package kr.gracelove.querydsl.entity;
 
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
@@ -575,5 +576,33 @@ class MemberTest {
                 .from(member)
                 .fetch();
         fetch.forEach(System.out::println);
+    }
+
+    /**
+     * 동적쿼리 - BooleanBuilder
+     * 나가는 query 볼것. 조건 중 하나가 null이면?
+     */
+    @Test
+    void dynamicQuery_BooleanBuilder() {
+        String username = "member1";
+        Integer age = 10;
+
+        List<Member> result = searchMember1(username, age);
+        assertEquals(1, result.size());
+    }
+
+    private List<Member> searchMember1(String username, Integer age) {
+        BooleanBuilder builder = new BooleanBuilder();
+        if (username != null) {
+            builder.and(member.username.eq(username));
+        }
+        if (age != null) {
+            builder.and(member.age.eq(age));
+        }
+
+        return queryFactory
+                .selectFrom(member)
+                .where(builder)
+                .fetch();
     }
 }
