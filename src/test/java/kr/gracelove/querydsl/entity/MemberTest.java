@@ -14,6 +14,7 @@ import java.util.List;
 
 import static kr.gracelove.querydsl.entity.QMember.*;
 import static kr.gracelove.querydsl.entity.QTeam.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -257,4 +258,41 @@ class MemberTest {
         assertEquals(35, teamB.get(member.age.avg()));
     }
 
+
+    /**
+     * TeamA의 소속된 모든회원 찾기.
+     */
+    @Test
+    void join() {
+        List<Member> fetch = queryFactory
+                .selectFrom(member)
+                .join(member.team, team)
+                .where(team.name.eq("teamA"))
+                .fetch();
+
+        assertThat(fetch)
+                .extracting("username")
+                .containsExactly("member1", "member2");
+    }
+
+    /**
+     * 세타조인
+     * 연관관계가 없어도 조인할 수 있다.
+     * 회원이름이 팀 이름과 같은 회원 조회.
+     *
+     * 모든 회원, 모든 팀 조인하고 where절에서 필터링
+     * 제약사항 : left join, right join 같은 외부조인 불가.
+     * but 조인 on을 이용하면 외부조인 가능하다.
+     */
+    @Test
+    void thetaJoin() {
+        em.persist(new Member("teamA"));
+        em.persist(new Member("teamB"));
+
+        List<Member> fetch = queryFactory
+                .select(member)
+                .from(member, team)
+                .where(member.username.eq(team.name))
+                .fetch();
+    }
 }
