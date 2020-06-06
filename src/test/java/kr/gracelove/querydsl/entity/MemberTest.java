@@ -180,4 +180,33 @@ class MemberTest {
 
     }
 
+    @Test
+    void paging1() {
+        List<Member> fetch = queryFactory
+                .selectFrom(member)
+                .orderBy(member.username.desc())
+                .offset(1) //0부터 시작.
+                .limit(2)
+                .fetch();
+
+        fetch.forEach(System.out::println);
+
+        assertEquals(2, fetch.size());
+    }
+
+    @Test
+    void paging2() {
+        QueryResults<Member> queryResults = queryFactory
+                .selectFrom(member)
+                .orderBy(member.username.desc())
+                .offset(1) //0부터 시작.
+                .limit(2)
+                .fetchResults();
+
+        assertEquals(4, queryResults.getTotal());
+        assertEquals(2, queryResults.getResults().size());
+        // 0, 1, 2, 3  -> 총 네 건
+        // 1, 2 -> 총 두 건
+    }
+
 }
