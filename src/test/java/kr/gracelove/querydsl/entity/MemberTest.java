@@ -3,7 +3,9 @@ package kr.gracelove.querydsl.entity;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import kr.gracelove.querydsl.dto.MemberDto;
@@ -604,5 +606,40 @@ class MemberTest {
                 .selectFrom(member)
                 .where(builder)
                 .fetch();
+    }
+
+    /**
+     * 동적쿼리 - Where 다중 파라미터
+     */
+    @Test
+    void dynamicQuery_whereParam() {
+        String username = "member1";
+        Integer age = 10;
+
+        List<Member> result = searchMember2(username, age);
+        assertEquals(1, result.size());
+    }
+
+    private List<Member> searchMember2(String username, Integer age) {
+        return queryFactory
+                .selectFrom(member)
+                .where(usernameEq(username), ageEq(age))
+//                .where(allEq(username, age))
+                .fetch();
+    }
+
+    private BooleanExpression usernameEq(String username) {
+        return username != null ? member.username.eq(username) : null;
+    }
+
+    private BooleanExpression ageEq(Integer age) {
+        return age != null ? member.age.eq(age) : null;
+    }
+
+    /**
+     * 메서드로 뽑을 수 있으니까 조합을 할 수 있다.
+     */
+    private BooleanExpression allEq(String username, Integer age) {
+        return usernameEq(username).and(ageEq(age))
     }
 }
