@@ -477,4 +477,45 @@ class MemberTest {
 
     //JPA JPQL 서브쿼리의 한계? from절 서브쿼리 지원x(인라인 뷰)
     //해결법? 네이티브사용, 서브쿼리를 join으로 변경, 쿼리를 2번 분리해서 실행.
+
+    /**
+     * 프로젝션
+     * 대상이 하나.
+     */
+    @Test
+    void simpleProjection() {
+//        List<Member> fetch1 = queryFactory
+//                .select(member)
+//                .from(member)
+//                .fetch();
+
+        List<String> fetch = queryFactory
+                .select(member.username)
+                .from(member)
+                .fetch();
+
+        for (String username : fetch) {
+            System.out.println("username = " + username);
+        }
+    }
+
+    /**
+     * TUPLE 프로젝션
+     */
+    @Test
+    void tupleProjection() {
+        List<Tuple> fetch = queryFactory
+                .select(member.username, member.age)
+                .from(member)
+                .fetch();
+
+        for (Tuple tuple : fetch) {
+            String username = tuple.get(member.username);
+            Integer age = tuple.get(member.age);
+            System.out.println("username = " + username);
+            System.out.println("age = " + age);
+        }
+    }
+
+    // 튜플은 쿼리DSL에 종속적이다. 하부 기술을 쉽게 바꿀 수 있게 repository 에서 사용하고 바깥으로 내보낼 때는 일반적인 객체로 내보내자.(DTO 등)
 }
