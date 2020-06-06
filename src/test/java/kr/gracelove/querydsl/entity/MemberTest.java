@@ -640,6 +640,58 @@ class MemberTest {
      * 메서드로 뽑을 수 있으니까 조합을 할 수 있다.
      */
     private BooleanExpression allEq(String username, Integer age) {
-        return usernameEq(username).and(ageEq(age))
+        return usernameEq(username).and(ageEq(age));
+    }
+
+
+    /**
+     * 수정, 삭제 벌크 연산
+     * 쿼리 한번으로 대량의 데이터 수정.
+     */
+    @Test
+    void bulkUpdate() {
+
+        long numberOfUpdateColumns = queryFactory
+                .update(member)
+                .set(member.username, "비회원")
+                .where(member.age.lt(30))
+                .execute();
+
+        assertEquals(2, numberOfUpdateColumns);
+        /**
+         * 현재 영속성 컨텍스트 상황.
+         *
+         *         member1 = 10 -> member1
+         *         member2 = 20 -> member2
+         *         member3 = 30 -> member3
+         *         member4 = 40 -> member4
+         *
+         * 현재 DB 상황
+         *         member1 = 10 -> 비회원
+         *         member2 = 20 -> 비회원
+         *         member3 = 30 -> member3
+         *         member4 = 40 -> member4
+         *
+         * 벌크연산은 영속성컨텍스트 무시하고 바로때려버리기 때문에 DB의 값과 영속성컨텍스트 값이 다름.
+         *
+        */
+
+//        List<Member> fetch = queryFactory
+//                .selectFrom(member)
+//                .fetch();
+//
+//        fetch.forEach(System.out::println);
+
+        //해결하려면? em.flush, clear 쓰자.
+        //벌크연산한 뒤에는 영속성컨텍스트 초기화 시켜주자.
+        em.flush();
+        em.clear();
+
+        List<Member> fetch2 = queryFactory
+                .selectFrom(member)
+                .fetch();
+
+        fetch2.forEach(System.out::println);
+
     }
 }
