@@ -279,7 +279,7 @@ class MemberTest {
      * 세타조인
      * 연관관계가 없어도 조인할 수 있다.
      * 회원이름이 팀 이름과 같은 회원 조회.
-     *
+     * <p>
      * 모든 회원, 모든 팀 조인하고 where절에서 필터링
      * 제약사항 : left join, right join 같은 외부조인 불가.
      * but 조인 on을 이용하면 외부조인 가능하다.
@@ -294,5 +294,52 @@ class MemberTest {
                 .from(member, team)
                 .where(member.username.eq(team.name))
                 .fetch();
+    }
+
+    /**
+     * 회원과 팀을 조인. 팀 이름이 teamA인 팀만 조인하고 회원은 모두 조회.
+     * JPQL :
+     * select m, t
+     * from Member m
+     * left join m.team t
+     * on t.name = 'teamA'
+     *
+     * 이너조인 쓴다면 그냥 where쓰자..
+     */
+    @Test
+    void joinOnFiltering() {
+        List<Tuple> result = queryFactory
+                .select(member, team)
+                .from(member)
+                .leftJoin(member.team, team)
+                .on(team.name.eq("teamA"))
+                .fetch();
+
+        for (Tuple tuple : result) {
+            System.out.println("tuple = " + tuple);
+        }
+    }
+
+    /**
+     * 연관관계 없는 엔티티 외부조회.
+     * 회원의 이름이 팀 이름과 같은 대상 외부조인
+     */
+    @Test
+    void joinOnNoRelation() {
+        em.persist(new Member("teamA"));
+        em.persist(new Member("teamB"));
+
+        List<Tuple> fetch = queryFactory
+                .select(member, team)
+                .from(member)
+                .leftJoin(team)
+                .on(member.username.eq(team.name))
+                .fetch();
+
+        for (Tuple tuple : fetch) {
+            System.out.println("TUPLE : " + tuple);
+        }
+
+    }
     }
 }
