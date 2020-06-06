@@ -10,6 +10,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.util.List;
 
+import static kr.gracelove.querydsl.entity.QMember.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -28,9 +29,12 @@ class MemberTest {
 
     @PersistenceContext
     EntityManager em;
+    JPAQueryFactory queryFactory;
 
     @BeforeEach
     public void testEntity() {
+        queryFactory = new JPAQueryFactory(em);
+
         Team teamA = new Team("teamA");
         Team teamB = new Team("teamB");
         em.persist(teamA);
@@ -66,13 +70,13 @@ class MemberTest {
         //member1 찾기
         String username = "member1";
 
-        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //필드레벨로 가져가도 된다. 동시성문제 x
-        QMember m = QMember.member;
+//        QMember member = new QMember("m1"); // 셀프조인할 때만 쓰는걸 추천.
+//        QMember member = QMember.member;    // 일반적으로 추천.
 
         Member findMember = queryFactory
-                .select(m)
-                .from(m)
-                .where(m.username.eq(username))
+                .select(member)
+                .from(member)
+                .where(member.username.eq(username))
                 .fetchOne();
 
         assertEquals(username, findMember.getUsername());
