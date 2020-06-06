@@ -2,6 +2,7 @@ package kr.gracelove.querydsl.entity;
 
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -385,4 +386,95 @@ class MemberTest {
         assertTrue(loaded);
 
     }
+
+    /**
+     * 서브쿼리
+     * 나이가 가장 많은 회원 조회.
+     */
+    @Test
+    void subquery() {
+
+        QMember memberSub = new QMember("memberSub"); // alias 달라야한다.
+
+        List<Member> fetch = queryFactory
+                .selectFrom(member)
+                .where(member.age.eq(
+                        //40
+                        JPAExpressions
+                                .select(memberSub.age.max())
+                                .from(memberSub)
+                ))
+                .fetch();
+
+        assertThat(fetch)
+                .extracting("age")
+                .containsExactly(40);
+    }
+
+    /**
+     * 서브쿼리2
+     * 나이가 평균 이상인 회원 조회.
+     */
+    @Test
+    void subqueryGoe() {
+
+        QMember memberSub = new QMember("memberSub"); // alias 달라야한다.
+
+        List<Member> fetch = queryFactory
+                .selectFrom(member)
+                .where(member.age.goe(
+                        //25
+                        JPAExpressions
+                                .select(memberSub.age.avg())
+                                .from(memberSub)
+                ))
+                .fetch();
+
+        assertThat(fetch)
+                .extracting("age")
+                .containsExactly(30, 40);
+    }
+
+    /**
+     * 서브쿼리2
+     * 나이가 10살 초과인 회원 조회.
+     */
+    @Test
+    void subqueryIn() {
+
+        QMember memberSub = new QMember("memberSub"); // alias 달라야한다.
+
+        List<Member> fetch = queryFactory
+                .selectFrom(member)
+                .where(member.age.in(
+                        JPAExpressions
+                                .select(memberSub.age)
+                                .from(memberSub)
+                                .where(memberSub.age.gt(10))
+                ))
+                .fetch();
+
+        assertThat(fetch)
+                .extracting("age")
+                .containsExactly(20, 30, 40);
+    }
+
+    @Test
+    void selectSubquery() {
+        QMember memberSub = new QMember("memberSub");
+        List<Tuple> fetch = queryFactory
+                .select(member.username,
+                        JPAExpressions
+                                .select(memberSub.age.avg())
+                                .from(memberSub))
+                .from(member)
+                .fetch();
+
+        for (Tuple tuple : fetch) {
+            System.out.println("tuple = " + tuple);
+        }
+    }
+
+    //JPA JPQL 서브쿼리의 한계? from절 서브쿼리 지원x(인라인 뷰)
+    //해결법? 네이티브사용, 서브쿼리를 join으로 변경, 쿼리를 2번 분리해서 실행.
 }
