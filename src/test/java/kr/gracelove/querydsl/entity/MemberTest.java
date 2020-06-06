@@ -368,4 +368,21 @@ class MemberTest {
         System.out.println(findMember.getTeam());
 
     }
+
+    @Test
+    void fetchJoinUse() {
+        em.flush();
+        em.clear();
+
+
+        Member findMember = queryFactory
+                .selectFrom(member)
+                .join(member.team, team).fetchJoin()
+                .where(member.username.eq("member1"))
+                .fetchOne();
+
+        boolean loaded = emf.getPersistenceUnitUtil().isLoaded(findMember.getTeam());
+        assertTrue(loaded);
+
+    }
 }
