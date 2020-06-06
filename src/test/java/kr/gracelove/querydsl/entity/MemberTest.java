@@ -1,6 +1,7 @@
 package kr.gracelove.querydsl.entity;
 
 import com.querydsl.core.QueryResults;
+import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,6 +13,7 @@ import javax.persistence.PersistenceContext;
 import java.util.List;
 
 import static kr.gracelove.querydsl.entity.QMember.*;
+import static kr.gracelove.querydsl.entity.QTeam.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -207,6 +209,52 @@ class MemberTest {
         assertEquals(2, queryResults.getResults().size());
         // 0, 1, 2, 3  -> 총 네 건
         // 1, 2 -> 총 두 건
+    }
+
+    @Test
+    void aggregation() {
+        List<Tuple> fetch = queryFactory
+                .select(
+                        member.count(),
+                        member.age.sum(),
+                        member.age.avg(),
+                        member.age.max(),
+                        member.age.min()
+                )
+                .from(member)
+                .fetch();
+
+        //TUPLE -> querydsl이 제공하는 것.(여러개 타입)
+
+        Tuple tuple = fetch.get(0);
+        assertEquals(4, tuple.get(member.count()));
+        assertEquals(100, tuple.get(member.age.sum()));
+        assertEquals(25, tuple.get(member.age.avg()));
+        assertEquals(40, tuple.get(member.age.max()));
+        assertEquals(10, tuple.get(member.age.min()));
+    }
+
+    /**
+     * 팀의 이름과 각 팀 멤버의 평균 연령을 구하라.
+     */
+    @Test
+    void group() {
+        List<Tuple> fetch = queryFactory
+                .select(team.name, member.age.avg())
+                .from(member)
+                .join(member.team, team)
+                .orderBy(team.name.asc())
+                .groupBy(team.name)
+                .fetch();
+
+        Tuple teamA = fetch.get(0);
+        Tuple teamB = fetch.get(1);
+
+        assertEquals("teamA", teamA.get(team.name));
+        assertEquals(15, teamA.get(member.age.avg()));
+
+        assertEquals("teamB", teamB.get(team.name));
+        assertEquals(35, teamB.get(member.age.avg()));
     }
 
 }
